@@ -22,7 +22,7 @@ let gameLoop = null;
 // 게임 설정
 const GAME_CONFIG = {
   gravity: 0.3,
-  maxPower: 15,
+  maxPower: 25,
   groundHeight: 100,
   tankWidth: 60,
   tankHeight: 40,
