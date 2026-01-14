@@ -42,6 +42,7 @@ let wind = 0;
 let currentTurn = 1;
 let isMyTurn = false;
 let gameOver = false;
+let isFiring = false; // 발사 중 상태 (중복 발사 방지)
 
 // DOM 요소
 const elements = {};
@@ -375,9 +376,28 @@ async function leaveRoom() {
   showScreen('lobby');
 }
 
-function handlePlayerLeft() {
-  alert('상대방이 나갔습니다.');
-  leaveRoom();
+async function handlePlayerLeft() {
+  // 게임 중에 상대방이 나간 경우 - 나의 승리로 처리
+  if (gameState.currentScreen === 'game' && !gameOver) {
+    gameOver = true;
+
+    // 승리 기록 저장 (내가 승자)
+    await saveGameRecord(
+      gameState.playerId,
+      gameState.playerName,
+      gameState.isHost ? 'guest' : 'host', // 상대방 ID (대략적)
+      gameState.isHost ? '상대방' : '상대방',
+      'disconnect'
+    );
+
+    alert('상대방이 나갔습니다. 승리!');
+    elements.resultTitle.textContent = '승리!';
+    elements.resultMessage.textContent = '상대방이 게임을 떠났습니다.';
+    showScreen('result');
+  } else {
+    alert('상대방이 나갔습니다.');
+    leaveRoom();
+  }
 }
 
 // 게임 시작
@@ -491,6 +511,7 @@ function initGame() {
   projectile = null;
   explosions = [];
   gameOver = false;
+  isFiring = false;
 
   // 게임 루프 시작
   if (gameLoop) cancelAnimationFrame(gameLoop);
@@ -512,7 +533,15 @@ function getTerrainHeight(x) {
 
 // 발사
 function fire() {
-  if (!isMyTurn || projectile || gameOver) return;
+  // 중복 발사 방지: 내 턴이 아니거나, 이미 발사 중이거나, 투사체가 있거나, 게임 오버면 리턴
+  if (!isMyTurn || isFiring || projectile || gameOver) return;
+
+  // 발사 시작 - 즉시 턴 잠금
+  isFiring = true;
+  isMyTurn = false;
+  elements.fireBtn.disabled = true;
+  elements.angleSlider.disabled = true;
+  elements.powerSlider.disabled = true;
 
   const angle = parseInt(elements.angleSlider.value);
   const power = parseInt(elements.powerSlider.value) / 100 * GAME_CONFIG.maxPower;
@@ -527,7 +556,10 @@ function fire() {
     vy: -Math.sin(radians) * power
   };
 
-  // 상대방에게 발사 정보 전송
+  // 상대방에게 발사 정보 + 턴 변경 전송
+  const nextTurn = gameState.playerNumber === 1 ? 2 : 1;
+  const newWind = Math.floor(Math.random() * 11) - 5;
+
   gameState.channel.send({
     type: 'broadcast',
     event: 'game_update',
@@ -535,12 +567,11 @@ function fire() {
       type: 'fire',
       angle,
       power: parseInt(elements.powerSlider.value),
-      playerNumber: gameState.playerNumber
+      playerNumber: gameState.playerNumber,
+      nextTurn: nextTurn,
+      newWind: newWind
     }
   });
-
-  isMyTurn = false;
-  elements.fireBtn.disabled = true;
 }
 
 // 게임 업데이트 핸들러
@@ -559,13 +590,25 @@ function handleGameUpdate(data) {
           vx: Math.cos(radians) * power,
           vy: -Math.sin(radians) * power
         };
+
+        // 상대방이 발사 완료 - 내 턴으로 전환
+        currentTurn = data.nextTurn;
+        wind = data.newWind;
+        isMyTurn = (currentTurn === gameState.playerNumber);
+        isFiring = false;
+
+        updateWindDisplay();
+        updateTurnDisplay();
+        // 투사체가 날아가는 중에는 컨트롤 비활성화, 충돌 후 활성화
       }
       break;
 
     case 'turn_change':
+      // 이제 fire 이벤트에서 턴 변경을 처리하므로 이 케이스는 거의 사용되지 않음
       currentTurn = data.turn;
       isMyTurn = (currentTurn === 1 && gameState.playerNumber === 1) ||
         (currentTurn === 2 && gameState.playerNumber === 2);
+      isFiring = false;
       updateTurnDisplay();
       elements.fireBtn.disabled = !isMyTurn;
       elements.angleSlider.disabled = !isMyTurn;
@@ -692,28 +735,16 @@ function applyDamage(targetPlayer, damage) {
 }
 
 function changeTurn() {
-  currentTurn = currentTurn === 1 ? 2 : 1;
-  isMyTurn = (currentTurn === 1 && gameState.playerNumber === 1) ||
-    (currentTurn === 2 && gameState.playerNumber === 2);
+  // 투사체 충돌 후 호출됨 - 컨트롤만 활성화
+  // 턴 변경은 fire() 함수에서 이미 처리됨
+  isFiring = false;
 
-  // 새 바람 생성
-  wind = Math.floor(Math.random() * 11) - 5;
-  updateWindDisplay();
-  updateTurnDisplay();
-
-  elements.fireBtn.disabled = !isMyTurn;
-  elements.angleSlider.disabled = !isMyTurn;
-  elements.powerSlider.disabled = !isMyTurn;
-
-  gameState.channel.send({
-    type: 'broadcast',
-    event: 'game_update',
-    payload: {
-      type: 'turn_change',
-      turn: currentTurn,
-      wind
-    }
-  });
+  // 내 턴이면 컨트롤 활성화
+  if (isMyTurn) {
+    elements.fireBtn.disabled = false;
+    elements.angleSlider.disabled = false;
+    elements.powerSlider.disabled = false;
+  }
 }
 
 function updateTurnDisplay() {
@@ -740,12 +771,23 @@ function updateHealthDisplay() {
   elements.player2NameDisplay.textContent = gameState.isHost ? '상대방' : gameState.playerName;
 }
 
-function endGame(winner) {
+async function endGame(winner) {
+  if (gameOver) return; // 중복 호출 방지
   gameOver = true;
   cancelAnimationFrame(gameLoop);
 
   const isWinner = (winner === 1 && gameState.playerNumber === 1) ||
     (winner === 2 && gameState.playerNumber === 2);
+
+  // 호스트만 전적 기록 저장 (중복 방지)
+  if (gameState.isHost) {
+    const winnerName = winner === 1 ? gameState.playerName : '상대방';
+    const loserName = winner === 1 ? '상대방' : gameState.playerName;
+    const winnerId = winner === 1 ? gameState.playerId : 'opponent';
+    const loserId = winner === 1 ? 'opponent' : gameState.playerId;
+
+    await saveGameRecord(winnerId, winnerName, loserId, loserName, 'battle');
+  }
 
   elements.resultTitle.textContent = isWinner ? '승리!' : '패배...';
   elements.resultMessage.textContent = isWinner ?
@@ -755,6 +797,29 @@ function endGame(winner) {
   setTimeout(() => {
     showScreen('result');
   }, 1500);
+}
+
+// 전적 기록 저장
+async function saveGameRecord(winnerId, winnerName, loserId, loserName, winReason) {
+  try {
+    const { error } = await supabaseClient
+      .from('game_records')
+      .insert({
+        winner_id: winnerId,
+        winner_name: winnerName,
+        loser_id: loserId,
+        loser_name: loserName,
+        win_reason: winReason
+      });
+
+    if (error) {
+      console.error('전적 저장 실패:', error);
+    } else {
+      console.log('전적 저장 완료');
+    }
+  } catch (err) {
+    console.error('전적 저장 오류:', err);
+  }
 }
 
 function returnToLobby() {

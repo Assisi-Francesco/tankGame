@@ -60,3 +60,29 @@ CREATE TRIGGER update_tank_rooms_updated_at
   BEFORE UPDATE ON tank_rooms
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- ========================================
+-- 게임 전적 테이블
+-- ========================================
+
+-- 10. 게임 전적 테이블 생성
+CREATE TABLE IF NOT EXISTS game_records (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  winner_id VARCHAR(50) NOT NULL,
+  winner_name VARCHAR(50) NOT NULL,
+  loser_id VARCHAR(50) NOT NULL,
+  loser_name VARCHAR(50) NOT NULL,
+  win_reason VARCHAR(20) DEFAULT 'battle' CHECK (win_reason IN ('battle', 'disconnect')),
+  played_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 11. game_records RLS 활성화
+ALTER TABLE game_records ENABLE ROW LEVEL SECURITY;
+
+-- 12. 모든 사용자가 전적을 조회할 수 있도록 허용
+CREATE POLICY "Anyone can view records" ON game_records
+  FOR SELECT USING (true);
+
+-- 13. 모든 사용자가 전적을 추가할 수 있도록 허용
+CREATE POLICY "Anyone can insert records" ON game_records
+  FOR INSERT WITH CHECK (true);
