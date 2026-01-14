@@ -328,7 +328,7 @@ function showWaitingRoom(roomCode, player1Name, player2Name) {
   showScreen('waiting');
 
   // 방 상태 실시간 감시
-  supabase
+  supabaseClient
     .channel(`room_status:${roomCode}`)
     .on('postgres_changes', {
       event: 'UPDATE',
