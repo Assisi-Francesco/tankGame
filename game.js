@@ -1,6 +1,6 @@
-// Supabase 설정
-const SUPABASE_URL = 'https://uivfdqijoohhaosznmcc.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_FlGF4nOk7kS0f1XNnhleWw_LJVYhSoU';
+// Supabase 설정 (config.js에서 로드)
+const SUPABASE_URL = CONFIG.SUPABASE_URL;
+const SUPABASE_ANON_KEY = CONFIG.SUPABASE_ANON_KEY;
 let supabaseClient = null;
 
 // 게임 상태
