@@ -1,0 +1,348 @@
+/* Tank Battle Game Styles */
+
+/* Screens */
+.screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+}
+
+.screen.hidden {
+  display: none;
+}
+
+/* Lobby */
+.lobby-container {
+  width: 100%;
+  max-width: 500px;
+  padding: var(--spacing-8);
+  text-align: center;
+}
+
+.lobby-container h1 {
+  font-size: var(--text-4xl);
+  margin-bottom: var(--spacing-2);
+}
+
+.lobby-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-8);
+}
+
+.input-group {
+  margin-bottom: var(--spacing-6);
+  text-align: left;
+}
+
+.lobby-buttons {
+  display: flex;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
+}
+
+.lobby-buttons .btn {
+  flex: 1;
+}
+
+.room-list {
+  text-align: left;
+}
+
+.room-list h3 {
+  font-size: var(--text-lg);
+  margin-bottom: var(--spacing-4);
+  color: var(--color-text-muted);
+}
+
+.rooms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.room-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.room-item:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-card);
+}
+
+.room-item .room-name {
+  font-weight: 600;
+}
+
+.room-item .room-status {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* Waiting Room */
+.waiting-container {
+  width: 100%;
+  max-width: 600px;
+  padding: var(--spacing-8);
+  text-align: center;
+}
+
+.players-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  margin: var(--spacing-8) 0;
+}
+
+.player-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background: var(--color-bg-light);
+  border-radius: var(--radius-lg);
+  min-width: 150px;
+}
+
+.tank-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.tank-blue {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.tank-red {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+.vs-text {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.player-name {
+  font-weight: 600;
+}
+
+.player-slot.ready .player-name {
+  color: var(--color-success);
+}
+
+.waiting-buttons {
+  display: flex;
+  gap: var(--spacing-4);
+  justify-content: center;
+}
+
+/* Game Screen */
+#gameScreen {
+  flex-direction: column;
+  padding: 0;
+  background: linear-gradient(to bottom, #1a1a2e, #16213e);
+}
+
+#gameCanvas {
+  width: 100%;
+  flex: 1;
+  display: block;
+}
+
+.game-ui {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.health-bar {
+  width: 150px;
+  height: 20px;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+}
+
+.health-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--color-success), #86efac);
+  transition: width var(--transition-base);
+}
+
+.health-fill.low {
+  background: linear-gradient(90deg, var(--color-error), #fca5a5);
+}
+
+.game-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.turn-indicator {
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.turn-indicator.enemy-turn {
+  background: var(--color-error);
+}
+
+.wind-indicator {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-4);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+.angle-control,
+.power-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.controls label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.controls input[type="range"] {
+  width: 150px;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-full);
+  outline: none;
+}
+
+.controls input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.controls input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.fire-btn {
+  padding: var(--spacing-4) var(--spacing-8);
+  font-size: var(--text-lg);
+}
+
+.fire-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Result Screen */
+.result-container {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--spacing-8);
+  text-align: center;
+}
+
+.result-container h1 {
+  font-size: var(--text-5xl);
+  margin-bottom: var(--spacing-4);
+}
+
+.result-container p {
+  margin-bottom: var(--spacing-8);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .players-list {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+
+  .vs-text {
+    font-size: var(--text-xl);
+  }
+
+  .controls {
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+  }
+
+  .health-bar {
+    width: 100px;
+  }
+
+  .game-ui {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-4);
+  }
+}
+
+/* Animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes explode {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.explosion {
+  animation: explode 0.5s ease-out forwards;
+}
